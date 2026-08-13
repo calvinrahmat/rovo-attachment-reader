@@ -1,0 +1,11 @@
+{
+  "name": "attachment-reader",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Forge function enabling a Rovo Agent to read Jira issue document attachments.",
+  "dependencies": {
+    "@forge/api": "^4.0.0",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1"
+  }
+}
