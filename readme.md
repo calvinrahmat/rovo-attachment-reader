@@ -6,3 +6,4 @@ test 5
 test 6
 deploy
 deply 2
+test 7
