@@ -55,6 +55,6 @@ permissions:
     - read:jira-work
 
 app:
-  id: ari:cloud:ecosystem::app/1b9277c8-eab6-4cc7-9c9e-dc32d51377ce
+  id: ari:cloud:ecosystem::app/171573ca-f00e-4594-a1c9-2f2701136d98
   runtime:
     name: nodejs22.x
