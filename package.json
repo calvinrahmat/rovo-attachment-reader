@@ -5,7 +5,9 @@
   "description": "Forge function enabling a Rovo Agent to read Jira issue document attachments.",
   "dependencies": {
     "@forge/api": "^4.0.0",
+    "exceljs": "^4.4.0",
     "mammoth": "^1.8.0",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "tesseract.js": "^7.0.0"
   }
 }

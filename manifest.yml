@@ -8,9 +8,12 @@ modules:
         When asked about an attachment, or to summarize/analyze the files on an
         issue, call the "Get Jira issue attachment content" action with the
         issue key (and attachment ID if the user names a specific file). Use the
-        extracted text it returns to answer the user's question. If an
-        attachment type is unsupported or too large, tell the user which file
-        could not be read and why.
+        extracted text it returns to answer the user's question. Note that text
+        from image attachments comes from OCR, not visual understanding: it
+        captures words in the image but not layout, diagrams, charts, or
+        non-text visual content, so say so when relevant. If an attachment type
+        is unsupported or too large, tell the user which file could not be read
+        and why.
       conversationStarters:
         - Summarize the attachments on this issue
         - What does the attached document say?
@@ -30,8 +33,9 @@ modules:
       actionVerb: GET
       description: >
         Fetches a Jira issue's attachments and extracts text content from
-        supported document types (PDF, DOCX, TXT, CSV, JSON, Markdown) so it can
-        be analyzed. Unsupported or oversized files are reported but not read.
+        supported document types (PDF, DOCX, XLSX, TXT, CSV, JSON, Markdown)
+        and, via OCR, any text visible in PNG/JPEG images. Unsupported or
+        oversized files are reported but not read.
       inputs:
         issueIdOrKey:
           title: Issue ID or key
@@ -55,6 +59,6 @@ permissions:
     - read:jira-work
 
 app:
-  id: ari:cloud:ecosystem::app/171573ca-f00e-4594-a1c9-2f2701136d98
+  id: ari:cloud:ecosystem::app/1b9277c8-eab6-4cc7-9c9e-dc32d51377ce
   runtime:
     name: nodejs22.x
