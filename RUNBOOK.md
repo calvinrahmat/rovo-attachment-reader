@@ -153,13 +153,16 @@ Then continue from step 3 as normal on the newly-created app.
 
 ## Known risks for this app
 
-- **Image OCR (`tesseract.js`) — real bundling failure, now fixed a
-  different way; needs a fresh deploy to confirm.** An earlier "confirmed
-  working" note here was wrong: the success it was based on (a chat message
-  reporting a PASS on a Checkmarx screenshot) was most likely Rovo chat's
-  own native image-viewing, not this action — the first time the action was
-  actually exercised (via Jira Automation, same screenshot), it failed
-  immediately, twice, in two different ways:
+- **Image OCR (`tesseract.js`) — confirmed working (2026-09-03), via
+  Jira Automation, not just chat.** This is the second "confirmed working"
+  note on this line — the first one was wrong: that success was based on a
+  chat message reporting a PASS on a Checkmarx screenshot, which was most
+  likely Rovo chat's own native image-viewing rather than this action. This
+  time the confirmation is solid: the same screenshot (attachment 10146),
+  read via the Jira-Automation-triggered path that had failed twice before,
+  came back with real extracted structured content (scan tool, severity
+  counts, branch name) — not just a bare PASS. Getting here took two real,
+  distinct `__dirname`-based path failures in production:
   1. tesseract.js's Node build computes its `workerPath` via
      `path.join(__dirname, ...)` *inside its own bundled module* — Forge's
      bundler doesn't preserve a real filesystem `__dirname` there, so
@@ -180,13 +183,12 @@ Then continue from step 3 as normal on the newly-created app.
   the static import graph Forge's bundler follows correctly. At call time
   `index.js` decodes all three and writes them to `os.tmpdir()` (a real,
   writable, hardcoded-safe path in any Lambda-style sandbox — no computed
-  `__dirname` involved) before spawning the worker from there. Validated
-  locally end-to-end (PNG and JPEG) against the exact runtime pattern Forge
-  will use. **Not yet confirmed against a real Forge deploy** — this needs a
-  `forge deploy` and a re-test against a real image attachment before it can
-  be trusted. If it still fails, check `forge logs` for the new error shape;
-  it will look different from both errors above since neither failure mode
-  it fixed can recur.
+  `__dirname` involved) before spawning the worker from there.
+  PNG and JPEG are both confirmed. Forge's `resources:` manifest feature
+  (static assets served to a browser iframe) was considered as an
+  alternative and ruled out — it's Custom UI-only, with no documented way
+  for a backend `function` module to read from it at runtime, so embedding
+  in the function's own code bundle is the only channel actually available.
 - After any tesseract.js/tesseract.js-core version bump, re-run
   `node gen_ocr_assets.mjs` to regenerate `src/ocr-assets.js` — it embeds a
   specific pinned build of the worker bundle and WASM core, not a live

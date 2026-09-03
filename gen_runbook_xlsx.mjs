@@ -84,9 +84,9 @@ riskHeader.eachCell((cell) => {
 
 const riskRows = [
   [
-    'Image OCR — bundling failure, refixed, needs redeploy to confirm',
-    "Two real, distinct __dirname-based path failures hit in production (tesseract.js's own workerPath default, then our own import.meta.url-based override) proved Forge's bundler preserves no module's real self-location. An earlier 'confirmed working' note was based on a chat success that was likely Rovo's native image-viewing, not this action.",
-    'Fixed by never computing a path to an existing file: gen_ocr_assets.mjs embeds a custom worker bundle + WASM core + trained data as base64; index.js writes them to os.tmpdir() at call time and spawns from there. Validated locally end-to-end (PNG+JPEG) but NOT yet confirmed on a real Forge deploy — redeploy and re-test before trusting it.',
+    'Image OCR — confirmed working (2026-09-03), via Jira Automation',
+    "Second 'confirmed working' note on this risk — the first was wrong (chat success was likely Rovo's native image-viewing). This time confirmed via the Automation-triggered path itself: attachment 10146 read back real structured content (scan tool, severities, branch name), not just a bare PASS. Took two distinct __dirname-based path failures in production to get here (tesseract.js's own workerPath default, then our own import.meta.url-based override), proving Forge's bundler preserves no module's real self-location.",
+    'Fixed by never computing a path to an existing file: gen_ocr_assets.mjs embeds a custom worker bundle + WASM core + trained data as base64; index.js writes them to os.tmpdir() at call time and spawns from there. PNG and JPEG both confirmed.',
   ],
   [
     'Image size / OCR timeout',
