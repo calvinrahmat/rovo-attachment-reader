@@ -10,26 +10,39 @@ import mammoth from 'mammoth';
 import ExcelJS from 'exceljs';
 import { createWorker } from 'tesseract.js';
 
-// NOTE ON tesseract.js IN FORGE: tesseract.js's Node build loads its WASM
-// engine and spawns its recognizer on a worker_threads.Worker pointed at a
-// *separate file* inside node_modules, and loads the WASM core binary via a
-// runtime fs.readFileSync() call rather than a static import. Forge's
-// function bundler compiles each handler into a single JS file following
-// static import/require references, so it is not guaranteed to carry along
-// files that are only ever referenced via a dynamic runtime path (the
-// worker-script file, the .wasm binaries). This is a known pain point for
-// tesseract.js on other single-file bundlers/serverless platforms (hence the
-// existence of third-party "serverless-tesseract" packaging plugins).
-// Everything below is implemented against tesseract.js's documented API and
-// works locally under plain Node, but this integration MUST be verified with
-// `forge deploy` + a real test issue before being relied on — if the worker
-// or core fails to load in Forge's sandbox, readAttachment() below reports
-// that per-image as a clean "Failed to extract content" error rather than
-// crashing the whole request.
+// NOTE ON tesseract.js IN FORGE: tesseract.js's Node build spawns its
+// recognizer on a worker_threads.Worker pointed at a separate file inside
+// node_modules, and loads the WASM core binary via a runtime
+// fs.readFileSync() call rather than a static import. This was flagged
+// up front as a bundling risk, and it's confirmed real: tesseract.js
+// computes its default `workerPath` via `path.join(__dirname, ...)` *inside
+// its own bundled module*
+// (node_modules/tesseract.js/src/worker/node/defaultOptions.js), and
+// resolvePaths() is a no-op on Node (only rewrites paths in the browser) —
+// so whatever that computes is passed to `new Worker()` unmodified. Forge's
+// bundler doesn't preserve a real filesystem `__dirname` for that nested
+// dependency file, so it comes out as a relative string
+// ("node_modules/tesseract.js/src/worker-script/node/index.js") instead of
+// an absolute path, and worker_threads rejects it outright:
+//   "The worker script or module filename must be an absolute path"
+// Fix: compute our own absolute path the same way we compute TESSDATA_PATH
+// below (from *our* module's import.meta.url, which webpack resolves
+// correctly since it's the entry file, not a nested dependency) and pass it
+// explicitly as `workerPath`, overriding tesseract.js's broken default.
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Bundled English language data (avoids any network fetch at runtime, which
 // would otherwise need an egress permission entry in manifest.yml).
 const TESSDATA_PATH = path.join(__dirname, 'tessdata');
+const OCR_WORKER_PATH = path.join(
+  __dirname,
+  '..',
+  'node_modules',
+  'tesseract.js',
+  'src',
+  'worker-script',
+  'node',
+  'index.js'
+);
 
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024; // 5MB
 // OCR is much slower than the other parsers and Forge functions have a hard
@@ -246,6 +259,7 @@ function getOcrWorker() {
       langPath: TESSDATA_PATH,
       gzip: true,
       cacheMethod: 'none', // read the bundled traineddata directly, no cache r/w
+      workerPath: OCR_WORKER_PATH, // override tesseract.js's broken __dirname-based default — see note above
     }).catch((err) => {
       // Let the next call retry instead of permanently caching a failed init.
       ocrWorkerPromise = undefined;
