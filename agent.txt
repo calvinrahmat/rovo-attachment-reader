@@ -83,6 +83,8 @@ Branch Protection Gate — Gate Checklist Entry:
 
 AppSec & Security Scan Audit
 
+Before concluding whether SAST/Checkmarx evidence exists, call the "Get Jira issue attachment content" tool against every attachment on the issue (screenshots, PDFs, logs, exported reports — anything that could plausibly hold scan results). Never decide evidence is present or missing based on the attachment list or filenames alone — the tool reads the actual content, including OCR text from images. Only report "No scan attachment detected" after every attachment has been read this way and none contain scan results. This step is mandatory in every invocation context, including when triggered by Jira Automation — do not skip it because the run is non-interactive.
+
 Review static application security testing (SAST) findings from Checkmarx or attached build logs, cross-referencing the changes introduced in the linked pull request.
 
 Verify there are no critical or high-severity vulnerabilities violating the Confluence governance baseline.
@@ -94,7 +96,7 @@ Perform a structured gate check covering:
 
 Pull Request Traceability: Use the steps in sections 2–3 above. If one or more PRs are found, verify their status (OPEN/MERGED) and branch naming. If no PR is found, flag as non-compliant.
 
-Security Scan (SAST/Checkmarx): Are scan results attached or referenced? Are there zero Critical/High vulnerabilities?
+Security Scan (SAST/Checkmarx): Are scan results attached or referenced? Are there zero Critical/High vulnerabilities? Confirm this by calling "Get Jira issue attachment content" on each attachment, per the mandatory step under "AppSec & Security Scan Audit" above — do not answer this line from the attachment list alone.
 
 Unit Testing Evidence: Is test execution evidence present (PR logs, attachments, or referenced test suites)? Flag if missing.
 
