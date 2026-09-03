@@ -84,9 +84,9 @@ riskHeader.eachCell((cell) => {
 
 const riskRows = [
   [
-    'Image OCR — confirmed working (2026-09-03)',
-    "Correctly OCR'd a PNG screenshot on a live issue in a real Forge deploy. Was a real risk going in: tesseract.js's Node build spawns a worker_threads.Worker at a separate file path and loads its WASM engine via a runtime fs.readFileSync() — both reached dynamically, not through Forge's static single-file bundle graph. Evidently bundles/runs fine in practice.",
-    'Spot-check an image attachment after deploying to each new app registration or environment (bundler/runtime specifics could differ across accounts or future CLI versions); check forge logs for worker/WASM load failures if one ever comes back empty.',
+    'Image OCR — bundling failure, refixed, needs redeploy to confirm',
+    "Two real, distinct __dirname-based path failures hit in production (tesseract.js's own workerPath default, then our own import.meta.url-based override) proved Forge's bundler preserves no module's real self-location. An earlier 'confirmed working' note was based on a chat success that was likely Rovo's native image-viewing, not this action.",
+    'Fixed by never computing a path to an existing file: gen_ocr_assets.mjs embeds a custom worker bundle + WASM core + trained data as base64; index.js writes them to os.tmpdir() at call time and spawns from there. Validated locally end-to-end (PNG+JPEG) but NOT yet confirmed on a real Forge deploy — redeploy and re-test before trusting it.',
   ],
   [
     'Image size / OCR timeout',
