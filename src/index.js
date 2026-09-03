@@ -174,7 +174,21 @@ async function parseText(buffer) {
 
 async function parsePdf(buffer) {
   const data = await pdfParse(buffer);
-  return data.text;
+  const text = (data.text ?? '').trim();
+  if (!text) {
+    // pdf-parse only reads a PDF's embedded text layer. A PDF with no text
+    // layer at all (e.g. every page is a scanned image) parses "successfully"
+    // but yields nothing — that's not a parse failure, it's a different kind
+    // of file. Say so explicitly rather than returning an empty string,
+    // which otherwise reads to the agent (and the user) as a silent bug.
+    throw new Error(
+      `No embedded text found across ${data.numpages ?? 'its'} page(s) — this ` +
+        'PDF is likely scanned/image-based with no text layer. OCR for ' +
+        'scanned PDF pages is not currently supported (only PNG/JPEG image ' +
+        'attachments get OCR).'
+    );
+  }
+  return text;
 }
 
 async function parseDocx(buffer) {
